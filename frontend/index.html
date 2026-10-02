@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Licorería · Sistema de Inventario Inteligente</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://googleapis.com" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Encabezado Principal Elegante -->
+        <header class="app-header">
+            <div class="brand">
+                <span class="brand-icon">🍾</span>
+                <div>
+                    <h1>Pronóstico de ventas <em>y recomendaciones</em></h1>
+                    <p class="brand-sub">Inventario inteligente para la toma de decisiones estratégicas</p>
+                </div>
+            </div>
+            <div class="api-status" id="api-status">● Sistema Activo</div>
+        </header>
+
+        <!-- Barra de Navegación por Pestañas -->
+        <nav class="app-nav">
+            <button class="nav-link active" data-target="sec-pronostico">🔮 Pronóstico</button>
+            <button class="nav-link" data-target="sec-recomendaciones">🎯 Recomendaciones</button>
+            <button class="nav-link" data-target="sec-evaluacion">📊 Evaluación de modelos</button>
+            <button class="nav-link" data-target="sec-datos">📂 Cargar mis datos</button>
+        </nav>
+
+        <!-- CONTENEDOR PRINCIPAL DE SECCIONES -->
+        <main class="app-content">
+            
+            <!-- SECCIÓN 1: PRONÓSTICO -->
+            <section id="sec-pronostico" class="content-section active">
+                <div class="section-header">
+                    <h2>¿Cuánto se venderá?</h2>
+                    <p>Elige un producto y una fecha. Se calculará el volumen de stock mínimo requerido por el modelo predictivo.</p>
+                </div>
+                
+                <div class="panel-layout">
+                    <form id="prediction-form" class="clean-form">
+                        <div class="form-group">
+                            <label for="producto-id">Código de Producto (ID)</label>
+                            <input type="text" id="producto-id" required value="VNS-012" placeholder="Ej: VNS-012">
+                        </div>
+                        <div class="form-group">
+                            <label for="fecha-pred">Fecha comercial a consultar</label>
+                            <input type="date" id="fecha-pred" required value="2026-11-01">
+                        </div>
+                        <div class="form-group">
+                            <label for="venta-anterior">Venta de hace 7 días (opcional)</label>
+                            <input type="number" id="venta-anterior" min="0" value="12">
+                        </div>
+                        <button type="submit" class="btn-pastel-primary">Calcular pronóstico</button>
+                    </form>
+                    <div id="prediction-result" class="result-card-pastel hidden"></div>
+                </div>
+            </section>
+
+            <!-- SECCIÓN 2: RECOMENDACIONES -->
+            <section id="sec-recomendaciones" class="content-section">
+                <div class="section-header">
+                    <h2>¿Qué conviene promover?</h2>
+                    <p>Top de productos según demanda esperada y ganancia estimada para el día elegido, analizando eventos festivos.</p>
+                </div>
+                
+                <div class="inline-control-box">
+                    <div class="form-group-inline">
+                        <label for="fecha-rec">Elegir Fecha:</label>
+                        <input type="date" id="fecha-rec" required value="2026-06-23">
+                    </div>
+                    <button id="btn-recommend" class="btn-pastel-secondary">Generar recomendaciones</button>
+                </div>
+                
+                <div id="recommendations-container" class="pastel-grid">
+                    <div class="empty-state-pastel">
+                        <p>Selecciona una fecha y presiona el botón para procesar el algoritmo prescriptivo.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECCIÓN 3: EVALUACIÓN DE MODELOS (Métricas de la Maestría) -->
+            <section id="sec-evaluacion" class="content-section">
+                <div class="section-header">
+                    <h2>¿Qué tan bueno es cada modelo?</h2>
+                    <p>Comparativa del rendimiento matemático evaluado sobre los datos reales del histórico del servidor.</p>
+                </div>
+                
+                <div class="evaluation-panel">
+                    <div class="eval-controls">
+                        <label>Datos reservados para evaluar:</label>
+                        <div class="slider-container">
+                            <input type="range" min="10" max="40" value="20" class="slider" id="eval-range">
+                            <span class="slider-value"><strong id="range-val">20</strong>%</span>
+                        </div>
+                        <button class="btn-pastel-dark" id="btn-run-eval">Ejecutar evaluación</button>
+                    </div>
+
+                    <div class="dashboard-pastels">
+                        <div class="p-card item-baseline">
+                            <span class="badge-p bg-p-gray">Paso 1</span>
+                            <h3>Línea Base Ingenua</h3>
+                            <p class="p-desc">Regla empírica del negocio (Mismo día semana anterior)</p>
+                            <div class="p-stat">MAE: <strong>5.63</strong> u.</div>
+                            <div class="p-foot">MASE Fijo: 1.0000</div>
+                        </div>
+                        <div class="p-card item-ridge">
+                            <span class="badge-p bg-p-blue">Paso 2</span>
+                            <h3>Regresión Regularizada (Ridge)</h3>
+                            <p class="p-desc">Propuesta lineal clásica enfocada únicamente en el calendario</p>
+                            <div class="p-stat">MAE: <strong>4.88</strong> u.</div>
+                            <div class="p-foot">MASE: 0.8667</div>
+                        </div>
+                        <div class="p-card item-xgb active-winner">
+                            <div class="ribbon-winner">🏆 Ganador Absoluto</div>
+                            <span class="badge-p bg-p-green">Paso 3</span>
+                            <h3>XGBoost Regressor</h3>
+                            <p class="p-desc">Modelo avanzado con variables temporales e históricos cruzados</p>
+                            <div class="p-stat">MAE: <strong class="green-text">4.39</strong> u.</div>
+                            <div class="p-foot-winner">🎯 MASE Óptimo: 0.7789 (-22.1%)</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECCIÓN 4: CARGAR DATOS -->
+            <section id="sec-datos" class="content-section">
+                <div class="section-header">
+                    <h2>Analizar otros datos</h2>
+                    <p>Opcional: sube ventas nuevas o de otra sucursal para evaluar la precisión de los modelos con ellas.</p>
+                </div>
+                
+                <div class="upload-area-pastel">
+                    <div class="upload-dropzone" id="dropzone">
+                        <span class="upload-icon">📥</span>
+                        <p><strong>Arrastra tu archivo aquí</strong> o haz clic para elegir</p>
+                        <span class="upload-types">Soporta archivos .csv o .xlsx</span>
+                    </div>
+                    
+                    <div class="eval-controls" style="margin-top: 2rem; justify-content: center;">
+                        <label>Datos para evaluación:</label>
+                        <div class="slider-container">
+                            <input type="range" min="10" max="40" value="20" class="slider">
+                            <span class="slider-value"><strong>20</strong>%</span>
+                        </div>
+                        <button class="btn-pastel-dark" onclick="alert('Simulación de carga completada con éxito para la tesis.')">Ejecutar análisis</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+        
+        <footer class="app-footer-bar">
+            <p>© 2026 Licorería Inteligente · Solución Analítica de Gestión de Inventarios</p>
+        </footer>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
