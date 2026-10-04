@@ -1,0 +1,16 @@
+{
+  "periodo_prueba": "2026-01-01 a 2026-09-30",
+  "filas_prueba": 82446,
+  "linea_base": {
+    "mae": 5.61,
+    "mase": 1.0
+  },
+  "ridge": {
+    "mae": 8.97,
+    "mase": 1.5988
+  },
+  "xgboost": {
+    "mae": 4.4,
+    "mase": 0.7838
+  }
+}

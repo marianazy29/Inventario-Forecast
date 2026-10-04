@@ -1,102 +1,297 @@
+import json
 import os
-import pandas as pd
+import re
+import unicodedata
+
 import holidays
 import joblib
-from fastapi import FastAPI, HTTPException
+import numpy as np
+import pandas as pd
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+
 from app.schemas import ConsultaPrediccion, ConsultaRecomendacion
-from app.settings import MODEL_PATH, ENCODER_PATH, DATASET_INTELIGENTE_PATH
+from app.settings import (
+    DATASET_INTELIGENTE_PATH,
+    ENCODER_PATH,
+    FRONTEND_DIR,
+    HORIZONTE_MAX_DIAS,
+    MARGEN_POR_CATEGORIA,
+    MARGEN_POR_DEFECTO,
+    METRICS_PATH,
+    MODEL_PATH,
+)
 
 app = FastAPI(
     title="Sistema Inteligente de Inventario y Ventas - Licorería",
     description="API integrada para predicciones de stock y analítica prescriptiva de recomendaciones.",
-    version="1.0.0"
+    version="2.0.0",
 )
 
-# Inyección de Seguridad CORS rescatada de los demos profesionales
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Validar existencia de los artefactos
+# =====================================================================
+# CARGA ÚNICA AL ARRANCAR (antes se leía el CSV de 27 MB en cada /recommend)
+# =====================================================================
 if not os.path.exists(MODEL_PATH) or not os.path.exists(ENCODER_PATH):
-    raise RuntimeError("Error Crítico: No se encontraron los archivos .pkl en la carpeta 'artifacts/'.")
+    raise RuntimeError("No se encontraron los .pkl en 'artifacts/'. Ejecuta: python entrenamiento.py")
+if not os.path.exists(DATASET_INTELIGENTE_PATH):
+    raise RuntimeError("No existe data/dataset_licoreria_inteligente.csv. Ejecuta: python procesamiento.py")
 
 modelo_xgb = joblib.load(MODEL_PATH)
 encoder = joblib.load(ENCODER_PATH)
 
-festividades_comerciales = {(5, 27), (6, 23), (9, 21), (11, 1), (12, 24), (12, 31)}
-margen_ganancia = {"VINOS": 25.0, "WHISKIES": 45.0, "CREMAS": 20.0, "SODA": 3.0, "AGUAS": 1.5}
+COLUMNAS = [
+    "Producto_Codificado", "Mes", "Día_Semana", "Es_Fin_De_Semana",
+    "Es_Feriado", "Es_Evento_Festivo", "Venta_Semana_Anterior",
+]
+FESTIVIDADES_COMERCIALES = {(5, 27), (6, 23), (9, 21), (11, 1), (12, 24), (12, 31)}
 
-# --- ENDPOINT 1: PREDICCIÓN DE DEMANDA ---
+_df = pd.read_csv(
+    DATASET_INTELIGENTE_PATH,
+    usecols=["Fecha", "ProductoId", "NombreProducto", "Categoría", "Cantidad_Vendida"],
+    parse_dates=["Fecha"],
+)
+
+# Cada código debe pertenecer a UN solo producto. Si no, las ventas se mezclan.
+_nombres_por_id = _df.groupby("ProductoId")["NombreProducto"].nunique()
+if (_nombres_por_id > 1).any():
+    raise RuntimeError(
+        f"Códigos duplicados con nombres distintos: {list(_nombres_por_id[_nombres_por_id > 1].index)}. "
+        "Vuelve a ejecutar: python procesamiento.py, separacion_temporal.py y entrenamiento.py"
+    )
+
+_CATALOGO = (
+    _df.drop_duplicates("ProductoId")[["ProductoId", "NombreProducto", "Categoría"]]
+    .sort_values("NombreProducto")
+    .reset_index(drop=True)
+)
+_CODIGO = {pid: int(code) for pid, code in zip(encoder.classes_, encoder.transform(encoder.classes_))}
+
+# Matriz fecha x producto (días sin registro = 0 ventas)
+_VENTAS = (
+    _df.pivot_table(index="Fecha", columns="ProductoId", values="Cantidad_Vendida", aggfunc="sum")
+    .asfreq("D")
+    .fillna(0.0)
+)
+_ULTIMA_FECHA = _VENTAS.index[-1]
+_FERIADOS = holidays.Bolivia(years=range(2022, 2037))
+
+
+def _norm(texto) -> str:
+    """minúsculas, sin tildes ni signos: 'JACK DANIEL`S' -> 'jack daniel s'"""
+    t = unicodedata.normalize("NFKD", str(texto)).encode("ascii", "ignore").decode().lower()
+    return re.sub(r"[^a-z0-9]+", " ", t).strip()
+
+
+_CATALOGO["busq_n"] = _CATALOGO["NombreProducto"].map(_norm)
+_CATALOGO["busq_compacto"] = _CATALOGO["busq_n"].str.replace(" ", "", regex=False)
+_CATALOGO["busq_id"] = _CATALOGO["ProductoId"].str.lower()
+_CATALOGO["busq_cat"] = _CATALOGO["Categoría"].map(_norm)
+
+
+# =====================================================================
+# UTILIDADES
+# =====================================================================
+def _producto_dict(fila) -> dict:
+    return {"producto_id": fila["ProductoId"], "nombre": fila["NombreProducto"], "categoria": fila["Categoría"]}
+
+
+def _buscar(q: str, limite: int = 10) -> list[dict]:
+    """Busca por nombre (o por código / categoría). Todas las palabras deben aparecer."""
+    consulta = _norm(q)
+    tokens = consulta.split()
+    if not tokens:
+        return []
+    resultados = []
+    for fila in _CATALOGO.itertuples(index=False):
+        campo = f"{fila.busq_n} {fila.busq_id} {fila.busq_cat}"
+        if all(t in campo or t in fila.busq_compacto for t in tokens):
+            if fila.busq_n == consulta:
+                prioridad = 0
+            elif fila.busq_n.startswith(consulta):
+                prioridad = 1
+            elif any(p.startswith(tokens[0]) for p in fila.busq_n.split()):
+                prioridad = 2
+            else:
+                prioridad = 3
+            resultados.append((prioridad, fila.NombreProducto, fila))
+    resultados.sort(key=lambda r: (r[0], r[1]))
+    return [
+        {"producto_id": f.ProductoId, "nombre": f.NombreProducto, "categoria": f.Categoría}
+        for _, _, f in resultados[:limite]
+    ]
+
+
+def _resolver_producto(producto_id: str | None, nombre: str | None) -> str:
+    """Devuelve un ProductoId válido a partir del código o del nombre."""
+    pid = (producto_id or "").strip().upper()
+    if pid and pid in _CODIGO:
+        return pid
+    texto = (nombre or producto_id or "").strip()
+    n = _norm(texto)
+    exacto = _CATALOGO[_CATALOGO["busq_n"] == n]
+    if len(exacto) == 1:
+        return exacto.iloc[0]["ProductoId"]
+    encontrados = _buscar(texto, limite=5)
+    if len(encontrados) == 1:
+        return encontrados[0]["producto_id"]
+    if not encontrados:
+        raise HTTPException(404, f"No se encontró ningún producto parecido a '{texto}'.")
+    opciones = "; ".join(f"{p['nombre']} ({p['producto_id']})" for p in encontrados)
+    raise HTTPException(409, f"'{texto}' es ambiguo. ¿Quisiste decir: {opciones}?")
+
+
+def _parsear_fecha(texto: str) -> pd.Timestamp:
+    return pd.Timestamp(texto).normalize()
+
+
+def _calendario(fecha: pd.Timestamp) -> dict:
+    dia = fecha.dayofweek
+    return {
+        "Mes": fecha.month,
+        "Día_Semana": dia,
+        "Es_Fin_De_Semana": 1 if dia in (4, 5, 6) else 0,
+        "Es_Feriado": 1 if fecha.date() in _FERIADOS else 0,
+        "Es_Evento_Festivo": 1 if (fecha.month, fecha.day) in FESTIVIDADES_COMERCIALES else 0,
+    }
+
+
+def _predecir(fecha: pd.Timestamp, codigos: np.ndarray, lags: np.ndarray) -> np.ndarray:
+    """Un paso del modelo para varios productos a la vez. Devuelve float >= 0."""
+    X = pd.DataFrame({"Producto_Codificado": codigos, **_calendario(fecha), "Venta_Semana_Anterior": lags})[COLUMNAS]
+    return np.clip(modelo_xgb.predict(X), 0, None)
+
+
+def _pronosticar(fecha: pd.Timestamp, ids: list[str], lag_manual: float | None = None):
+    """
+    Devuelve (predicción por producto, fuente del lag, días hacia el futuro).
+    - lag manual: se usa tal cual.
+    - fecha dentro del historial: lag real de hace 7 días.
+    - fecha futura: pronóstico recursivo día a día desde el último dato real,
+      alimentando cada predicción como el "lag 7" del día siguiente.
+    """
+    codigos = np.array([_CODIGO[i] for i in ids])
+    dias_futuro = (fecha - _ULTIMA_FECHA).days
+
+    if lag_manual is not None:
+        lags = np.full(len(ids), float(lag_manual))
+        return _predecir(fecha, codigos, lags), "manual", max(dias_futuro, 0)
+
+    sub = _VENTAS[ids]
+
+    if dias_futuro <= 0:
+        ref = fecha - pd.Timedelta(days=7)
+        if ref >= _VENTAS.index[0]:
+            return _predecir(fecha, codigos, sub.loc[ref].to_numpy(float)), "historial real", 0
+        return _predecir(fecha, codigos, sub.mean().to_numpy(float)), "promedio histórico", 0
+
+    if dias_futuro > HORIZONTE_MAX_DIAS:
+        limite = (_ULTIMA_FECHA + pd.Timedelta(days=HORIZONTE_MAX_DIAS)).date()
+        raise HTTPException(400, f"Fecha demasiado lejana. El último dato real es {_ULTIMA_FECHA.date()}; consulta hasta {limite}.")
+
+    cola = list(sub.iloc[-7:].to_numpy(float))  # ventas de los últimos 7 días reales
+    pred = None
+    for k in range(1, dias_futuro + 1):
+        pred = _predecir(_ULTIMA_FECHA + pd.Timedelta(days=k), codigos, cola[-7])
+        cola.append(pred)
+    return pred, "pronóstico recursivo", dias_futuro
+
+
+def _margen(categoria: str) -> float:
+    return MARGEN_POR_CATEGORIA.get(categoria, MARGEN_POR_DEFECTO)
+
+
+def _aviso(dias_futuro: int):
+    if dias_futuro > 28:
+        return f"La fecha está {dias_futuro} días después del último dato real; a mayor horizonte, menor precisión."
+    return None
+
+
+# =====================================================================
+# ENDPOINTS
+# =====================================================================
+@app.get("/health")
+def health():
+    return {
+        "status": "ok",
+        "productos": len(_CATALOGO),
+        "ultima_fecha_con_datos": str(_ULTIMA_FECHA.date()),
+    }
+
+
+@app.get("/productos")
+def buscar_productos(q: str = Query("", description="Texto a buscar en el nombre"), limite: int = Query(10, ge=1, le=50)):
+    """Autocompletado: busca productos por nombre (sin importar tildes ni mayúsculas)."""
+    if not q.strip():
+        return {"resultados": [_producto_dict(f) for _, f in _CATALOGO.head(limite).iterrows()]}
+    return {"resultados": _buscar(q, limite)}
+
+
+@app.get("/metrics")
+def metricas():
+    if not os.path.exists(METRICS_PATH):
+        raise HTTPException(404, "Aún no hay métricas. Ejecuta: python entrenamiento.py")
+    with open(METRICS_PATH, encoding="utf-8") as f:
+        return json.load(f)
+
+
 @app.post("/predict")
 def predecir_demanda(consulta: ConsultaPrediccion):
-    try:
-        fecha_dt = pd.to_datetime(consulta.fecha)
-        if consulta.producto_id not in encoder.classes_:
-            raise HTTPException(status_code=404, detail=f"Código de producto '{consulta.producto_id}' no registrado.")
-        
-        mes = fecha_dt.month
-        dia_semana = fecha_dt.dayofweek
-        es_fin_semana = 1 if dia_semana in [4, 5, 6] else 0
-        es_feriado = 1 if fecha_dt in holidays.Bolivia(years=[fecha_dt.year]) else 0
-        es_festivo = 1 if (fecha_dt.month, fecha_dt.day) in festividades_comerciales else 0
-        
-        prod_encoded = encoder.transform([consulta.producto_id])
-        
-        columnas = ['Producto_Codificado', 'Mes', 'Día_Semana', 'Es_Fin_De_Semana', 'Es_Feriado', 'Es_Evento_Festivo', 'Venta_Semana_Anterior']
-        entrada = pd.DataFrame([[prod_encoded[0], mes, dia_semana, es_fin_semana, es_feriado, es_festivo, consulta.venta_semana_anterior]], columns=columnas)
-        
-        prediccion = int(max(0, round(modelo_xgb.predict(entrada)[0])))
-        return {"status": "success", "demanda_predicha": prediccion}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    fecha = _parsear_fecha(consulta.fecha)
+    pid = _resolver_producto(consulta.producto_id, consulta.nombre)
+    fila = _CATALOGO[_CATALOGO["ProductoId"] == pid].iloc[0]
 
-# --- ENDPOINT 2: RECOMENDADOR INTELIGENTE (ANALÍTICA PRESCRIPTIVA) ---
+    pred, fuente, dias_futuro = _pronosticar(fecha, [pid], consulta.venta_semana_anterior)
+
+    respuesta = {
+        "status": "success",
+        "producto": _producto_dict(fila),
+        "fecha": consulta.fecha,
+        "demanda_predicha": int(round(pred[0])),
+        "fuente_lag": fuente,
+        "dias_hacia_el_futuro": dias_futuro,
+        "promedio_diario_28d": round(float(_VENTAS[pid].iloc[-28:].mean()), 1),
+        "aviso": _aviso(dias_futuro),
+    }
+    if fecha in _VENTAS.index:
+        respuesta["venta_real"] = int(_VENTAS.at[fecha, pid])
+    return respuesta
+
+
 @app.post("/recommend")
 def recomendar_productos(consulta: ConsultaRecomendacion):
-    try:
-        fecha_dt = pd.to_datetime(consulta.fecha)
-        df_base = pd.read_csv(DATASET_INTELIGENTE_PATH)
-        
-        mes = fecha_dt.month
-        dia_semana = fecha_dt.dayofweek
-        es_fin_semana = 1 if dia_semana in [4, 5, 6] else 0
-        es_feriado = 1 if fecha_dt in holidays.Bolivia(years=[fecha_dt.year]) else 0
-        es_festivo = 1 if (fecha_dt.month, fecha_dt.day) in festividades_comerciales else 0
-        
-        lista_recomendaciones = []
-        
-        for p_id in encoder.classes_:
-            datos_prod = df_base[df_base['ProductoId'] == p_id]
-            if datos_prod.empty: continue
-            
-            nombre = datos_prod['NombreProducto'].iloc[0]
-            cat = datos_prod['Categoría'].iloc[0]
-            promedio_hist = datos_prod['Cantidad_Vendida'].mean()
-            
-            prod_encoded = encoder.transform([p_id])
-            columnas = ['Producto_Codificado', 'Mes', 'Día_Semana', 'Es_Fin_De_Semana', 'Es_Feriado', 'Es_Evento_Festivo', 'Venta_Semana_Anterior']
-            entrada = pd.DataFrame([[prod_encoded[0], mes, dia_semana, es_fin_semana, es_feriado, es_festivo, round(promedio_hist)]], columns=columnas)
-            
-            pred = int(max(0, round(modelo_xgb.predict(entrada)[0])))
-            incremento = ((pred - promedio_hist) / promedio_hist) * 100 if promedio_hist > 0 else 0
-            ganancia = pred * margen_ganancia.get(cat, 5.0)
-            
-            lista_recomendaciones.append({
-                "producto_id": p_id,
-                "nombre": nombre,
-                "categoria": cat,
-                "demanda_esperada": pred,
-                "incremento_estacional": round(incremento, 1),
-                "ganancia_estimada_bs": round(ganancia, 2)
-            })
-            
-        df_rec = pd.DataFrame(lista_recomendaciones).sort_values(by="ganancia_estimada_bs", ascending=False)
-        return {"status": "success", "top_recomendaciones": df_rec.head(3).to_dict(orient="records")}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    fecha = _parsear_fecha(consulta.fecha)
+    ids = list(_CATALOGO["ProductoId"])
+    pred, fuente, dias_futuro = _pronosticar(fecha, ids)
+
+    base_28d = _VENTAS[ids].iloc[-28:].mean().to_numpy(float)
+    df_rec = _CATALOGO[["ProductoId", "NombreProducto", "Categoría"]].copy()
+    df_rec["demanda_esperada"] = np.round(pred).astype(int)
+    df_rec["incremento_estacional"] = np.where(base_28d > 0, (pred - base_28d) / np.where(base_28d > 0, base_28d, 1) * 100, 0.0).round(1)
+    df_rec["margen_unitario_bs"] = df_rec["Categoría"].map(_margen)
+    df_rec["ganancia_estimada_bs"] = (df_rec["demanda_esperada"] * df_rec["margen_unitario_bs"]).round(2)
+
+    top = df_rec.sort_values("ganancia_estimada_bs", ascending=False).head(consulta.top)
+    top = top.rename(columns={"ProductoId": "producto_id", "NombreProducto": "nombre", "Categoría": "categoria"})
+
+    return {
+        "status": "success",
+        "fecha": consulta.fecha,
+        "fuente_lag": fuente,
+        "dias_hacia_el_futuro": dias_futuro,
+        "aviso": _aviso(dias_futuro),
+        "top_recomendaciones": top.to_dict(orient="records"),
+    }
+
+
+# El frontend se sirve desde la misma API: abre http://127.0.0.1:8000/
+# (debe ir al final para no tapar los endpoints anteriores)
+if os.path.isdir(FRONTEND_DIR):
+    app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")

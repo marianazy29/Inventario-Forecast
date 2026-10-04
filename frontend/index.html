@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Licorería · Sistema de Inventario Inteligente</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://googleapis.com" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="app-container">
@@ -41,9 +41,12 @@
                 
                 <div class="panel-layout">
                     <form id="prediction-form" class="clean-form">
-                        <div class="form-group">
-                            <label for="producto-id">Código de Producto (ID)</label>
-                            <input type="text" id="producto-id" required value="VNS-012" placeholder="Ej: VNS-012">
+                        <div class="form-group autocomplete">
+                            <label for="producto-buscar">Producto (busca por nombre)</label>
+                            <input type="text" id="producto-buscar" required autocomplete="off" placeholder="Ej: Pepsi lata, Corona, Jack Daniel's">
+                            <input type="hidden" id="producto-id">
+                            <ul id="producto-sugerencias" class="sugerencias hidden" role="listbox"></ul>
+                            <small id="producto-seleccionado" class="hint">Escribe al menos 2 letras y elige de la lista.</small>
                         </div>
                         <div class="form-group">
                             <label for="fecha-pred">Fecha comercial a consultar</label>
@@ -51,7 +54,7 @@
                         </div>
                         <div class="form-group">
                             <label for="venta-anterior">Venta de hace 7 días (opcional)</label>
-                            <input type="number" id="venta-anterior" min="0" value="12">
+                            <input type="number" id="venta-anterior" min="0" placeholder="Vacío = se calcula automáticamente">
                         </div>
                         <button type="submit" class="btn-pastel-primary">Calcular pronóstico</button>
                     </form>
@@ -89,37 +92,29 @@
                 </div>
                 
                 <div class="evaluation-panel">
-                    <div class="eval-controls">
-                        <label>Datos reservados para evaluar:</label>
-                        <div class="slider-container">
-                            <input type="range" min="10" max="40" value="20" class="slider" id="eval-range">
-                            <span class="slider-value"><strong id="range-val">20</strong>%</span>
-                        </div>
-                        <button class="btn-pastel-dark" id="btn-run-eval">Ejecutar evaluación</button>
-                    </div>
-
+                    <p id="eval-periodo" class="hint" style="margin-bottom:1rem;"></p>
                     <div class="dashboard-pastels">
                         <div class="p-card item-baseline">
                             <span class="badge-p bg-p-gray">Paso 1</span>
                             <h3>Línea Base Ingenua</h3>
                             <p class="p-desc">Regla empírica del negocio (Mismo día semana anterior)</p>
-                            <div class="p-stat">MAE: <strong>5.63</strong> u.</div>
+                            <div class="p-stat">MAE: <strong id="m-base-mae">–</strong> u.</div>
                             <div class="p-foot">MASE Fijo: 1.0000</div>
                         </div>
                         <div class="p-card item-ridge">
                             <span class="badge-p bg-p-blue">Paso 2</span>
                             <h3>Regresión Regularizada (Ridge)</h3>
                             <p class="p-desc">Propuesta lineal clásica enfocada únicamente en el calendario</p>
-                            <div class="p-stat">MAE: <strong>4.88</strong> u.</div>
-                            <div class="p-foot">MASE: 0.8667</div>
+                            <div class="p-stat">MAE: <strong id="m-ridge-mae">–</strong> u.</div>
+                            <div class="p-foot">MASE: <span id="m-ridge-mase">–</span></div>
                         </div>
                         <div class="p-card item-xgb active-winner">
-                            <div class="ribbon-winner">🏆 Ganador Absoluto</div>
+                            <div class="ribbon-winner">🏆 Mejor modelo</div>
                             <span class="badge-p bg-p-green">Paso 3</span>
                             <h3>XGBoost Regressor</h3>
                             <p class="p-desc">Modelo avanzado con variables temporales e históricos cruzados</p>
-                            <div class="p-stat">MAE: <strong class="green-text">4.39</strong> u.</div>
-                            <div class="p-foot-winner">🎯 MASE Óptimo: 0.7789 (-22.1%)</div>
+                            <div class="p-stat">MAE: <strong class="green-text" id="m-xgb-mae">–</strong> u.</div>
+                            <div class="p-foot-winner">🎯 MASE: <span id="m-xgb-mase">–</span> <span id="m-xgb-gain"></span></div>
                         </div>
                     </div>
                 </div>
@@ -145,7 +140,7 @@
                             <input type="range" min="10" max="40" value="20" class="slider">
                             <span class="slider-value"><strong>20</strong>%</span>
                         </div>
-                        <button class="btn-pastel-dark" onclick="alert('Simulación de carga completada con éxito para la tesis.')">Ejecutar análisis</button>
+                        <button class="btn-pastel-dark" disabled title="Función pendiente de implementar">Ejecutar análisis (próximamente)</button>
                     </div>
                 </div>
             </section>

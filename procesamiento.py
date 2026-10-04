@@ -11,6 +11,19 @@ df = pd.read_excel(nombre_archivo)
 print("¡Archivo cargado con éxito en tu máquina local!")
 print(f"Columnas detectadas inicialmente: {list(df.columns)}")
 
+# 1.5 CORREGIR CÓDIGOS DUPLICADOS: un mismo ProductoId con dos nombres distintos
+#     (ej. CVZ-001 = PACEÑA LATA GRANDE y PACEÑA BOTELLA LITRO) mezcla las ventas
+#     de dos productos y rompe el lag de 7 días. Al segundo nombre se le asigna un código nuevo.
+nombres_por_id = df.groupby('ProductoId')['NombreProducto'].nunique()
+for pid in nombres_por_id[nombres_por_id > 1].index:
+    prefijo = pid.split('-')[0]
+    max_num = max(int(x.split('-')[1]) for x in df['ProductoId'].unique() if x.startswith(prefijo + '-'))
+    nombres = sorted(df.loc[df['ProductoId'] == pid, 'NombreProducto'].unique())
+    for i, nombre in enumerate(nombres[1:], start=1):
+        nuevo_id = f"{prefijo}-{max_num + i:03d}"
+        df.loc[(df['ProductoId'] == pid) & (df['NombreProducto'] == nombre), 'ProductoId'] = nuevo_id
+        print(f"⚠️ Código duplicado {pid}: '{nombre}' ahora es {nuevo_id}")
+
 # 2. CONVERTIR COLUMNA FECHA
 df['Fecha'] = pd.to_datetime(df['Fecha'], errors='coerce')
 

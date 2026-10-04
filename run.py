@@ -1,7 +1,7 @@
 import os
 import sys
 import subprocess
-from app.settings import MODEL_PATH, ENCODER_PATH, DATASET_INTELIGENTE_PATH
+from app.settings import MODEL_PATH, ENCODER_PATH, DATASET_INTELIGENTE_PATH, METRICS_PATH
 
 def ejecutar_script(nombre_script):
     """Ejecuta un archivo .py secundario de forma segura en la terminal actual."""
@@ -21,7 +21,7 @@ if __name__ == "__main__":
     print("="*80)
     
     # 1. VERIFICACIÓN DE ARTEFACTOS Y DATOS EXISTENTES
-    artefactos_existen = os.path.exists(MODEL_PATH) and os.path.exists(ENCODER_PATH)
+    artefactos_existen = os.path.exists(MODEL_PATH) and os.path.exists(ENCODER_PATH) and os.path.exists(METRICS_PATH)
     data_procesada_existe = os.path.exists(DATASET_INTELIGENTE_PATH)
     
     if not artefactos_existen or not data_procesada_existe:
@@ -37,7 +37,7 @@ if __name__ == "__main__":
         # Paso 3: Separar los datos cronológicamente (2022-2025 Train | 2026 Test)
         ejecutar_script("separacion_temporal.py")
         
-        # Paso 4: Entrenar la regresión Ridge y el XGBoost, y exportar los artefactos .pkl
+        # Paso 4: Evaluar Ridge vs XGBoost, reentrenar el modelo final y exportar los .pkl y metricas.json
         ejecutar_script("entrenamiento.py")
         
         print("\n🎉 [PIPELINE] ¡Pipeline End-to-End completado con éxito!")
@@ -49,7 +49,8 @@ if __name__ == "__main__":
     # 2. ENCENDER EL SERVIDOR WEB (FASTAPI)
     print("="*80)
     print("🚀 Levantando el Servidor Backend con FastAPI...")
-    print("📱 Accede a la documentación interactiva en: http://127.0.0")
+    print("🖥️  Aplicación:    http://127.0.0.1:8000/")
+    print("📱 Documentación: http://127.0.0.1:8000/docs")
     print("="*80 + "\n")
     
     import uvicorn
