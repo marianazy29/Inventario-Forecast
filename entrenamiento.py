@@ -1,12 +1,13 @@
 import json
 import os
-
 import joblib
 import numpy as np
 import pandas as pd
 from sklearn.linear_model import Ridge
 from sklearn.metrics import mean_absolute_error
-from sklearn.preprocessing import LabelEncoder
+from sklearn.compose import make_column_transformer
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 from xgboost import XGBRegressor
 
 from app.settings import DATA_DIR, ENCODER_PATH, METRICS_PATH, MODEL_PATH
@@ -41,7 +42,15 @@ print("--- Entrenando XGBoost (evaluación 2022/23-2025 -> 2026) ---")
 modelo_eval = XGBRegressor(**PARAMS_XGB).fit(train[columnas_modelo], y_train)
 pred_xgb = np.clip(modelo_eval.predict(test[columnas_modelo]), 0, None).round()
 
-ridge = Ridge(alpha=1.0).fit(train[columnas_calendario], y_train)
+columnas_categoricas = ["Producto_Codificado", "Mes", "Día_Semana"]
+
+preprocesador = make_column_transformer(
+    (OneHotEncoder(handle_unknown="ignore"), columnas_categoricas),
+    remainder="passthrough",
+)
+
+ridge = make_pipeline(preprocesador, Ridge(alpha=1.0))
+ridge.fit(train[columnas_calendario], y_train)
 pred_ridge = np.clip(ridge.predict(test[columnas_calendario]), 0, None).round()
 
 pred_base = test["Venta_Semana_Anterior"]

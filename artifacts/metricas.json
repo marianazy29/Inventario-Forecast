@@ -6,8 +6,8 @@
     "mase": 1.0
   },
   "ridge": {
-    "mae": 8.97,
-    "mase": 1.5988
+    "mae": 4.31,
+    "mase": 0.7679
   },
   "xgboost": {
     "mae": 4.4,
