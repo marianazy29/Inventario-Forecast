@@ -95,28 +95,34 @@
                     <p id="eval-periodo" class="hint" style="margin-bottom:1rem;"></p>
                     <div class="dashboard-pastels">
                         <div class="p-card item-baseline">
-                            <span class="badge-p bg-p-gray">Paso 1</span>
+                            <span class="badge-p bg-p-gray">Referencia</span>
                             <h3>Línea Base Ingenua</h3>
-                            <p class="p-desc">Regla empírica del negocio (Mismo día semana anterior)</p>
-                            <div class="p-stat">MAE: <strong id="m-base-mae">–</strong> u.</div>
-                            <div class="p-foot">MASE Fijo: 1.0000</div>
+                            <p class="p-desc">Regla simple del negocio: vender lo mismo que el mismo día de la semana anterior</p>
+                            <div class="p-stat">MASE: <strong id="m-base-mase">–</strong></div>
+                            <div class="p-foot">MAE: <span id="m-base-mae">–</span> u.</div>
                         </div>
                         <div class="p-card item-ridge">
-                            <span class="badge-p bg-p-blue">Paso 2</span>
+                            <span class="badge-p bg-p-blue">Alternativa</span>
                             <h3>Regresión Regularizada (Ridge)</h3>
-                            <p class="p-desc">Propuesta lineal clásica enfocada únicamente en el calendario</p>
-                            <div class="p-stat">MAE: <strong id="m-ridge-mae">–</strong> u.</div>
-                            <div class="p-foot">MASE: <span id="m-ridge-mase">–</span></div>
+                            <p class="p-desc">Modelo lineal con producto, calendario y venta de la semana anterior</p>
+                            <div class="p-stat">MASE: <strong id="m-ridge-mase">–</strong></div>
+                            <div class="p-foot">MAE: <span id="m-ridge-mae">–</span> u.</div>
                         </div>
                         <div class="p-card item-xgb active-winner">
-                            <div class="ribbon-winner">🏆 Mejor modelo</div>
-                            <span class="badge-p bg-p-green">Paso 3</span>
+                            <div class="ribbon-winner">🏆 Modelo elegido</div>
+                            <span class="badge-p bg-p-green">En uso</span>
                             <h3>XGBoost Regressor</h3>
-                            <p class="p-desc">Modelo avanzado con variables temporales e históricos cruzados</p>
-                            <div class="p-stat">MAE: <strong class="green-text" id="m-xgb-mae">–</strong> u.</div>
-                            <div class="p-foot-winner">🎯 MASE: <span id="m-xgb-mase">–</span> <span id="m-xgb-gain"></span></div>
+                            <p class="p-desc">Árboles de decisión con producto, calendario y venta de la semana anterior</p>
+                            <div class="p-stat">MASE: <strong class="green-text" id="m-xgb-mase">–</strong></div>
+                            <div class="p-foot-winner">MAE: <span id="m-xgb-mae">–</span> u. <span id="m-xgb-gain"></span></div>
                         </div>
                     </div>
+                    <p class="hint" style="margin-top:1rem;">
+                        <strong>MASE (métrica principal):</strong> compara el error de cada producto con el de la línea base y promedia; todos los productos pesan igual. Menor que 1 significa mejor que la regla simple.
+                        <strong>MAE:</strong> error promedio en unidades por producto y día.
+                        El modelo se eligió por su MASE en validación (año 2025); estos resultados son de la prueba final.
+                        <strong>Limitación:</strong> XGBoost es algo menos preciso que Ridge en los productos de mayor venta.
+                    </p>
                 </div>
             </section>
 

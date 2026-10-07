@@ -1,16 +1,21 @@
 {
   "periodo_prueba": "2026-01-01 a 2026-09-30",
   "filas_prueba": 82446,
+  "modelo_elegido": "xgboost",
+  "metrica_principal": "mase",
   "linea_base": {
     "mae": 5.61,
-    "mase": 1.0
+    "mae_relativo": 1.0,
+    "mase": 1.0712
   },
   "ridge": {
-    "mae": 4.31,
-    "mase": 0.7679
+    "mae": 4.23,
+    "mae_relativo": 0.7547,
+    "mase": 0.8368
   },
   "xgboost": {
-    "mae": 4.4,
-    "mase": 0.7838
+    "mae": 4.25,
+    "mae_relativo": 0.758,
+    "mase": 0.8121
   }
 }

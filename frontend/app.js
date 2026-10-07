@@ -37,12 +37,14 @@ async function cargarMetricas() {
         const set = (id, v) => (document.getElementById(id).textContent = v);
         set("eval-periodo", `Evaluado sobre ${m.filas_prueba.toLocaleString("es")} registros reales (${m.periodo_prueba}).`);
         set("m-base-mae", m.linea_base.mae.toFixed(2));
+        set("m-base-mase", m.linea_base.mase.toFixed(4));
         set("m-ridge-mae", m.ridge.mae.toFixed(2));
         set("m-ridge-mase", m.ridge.mase.toFixed(4));
         set("m-xgb-mae", m.xgboost.mae.toFixed(2));
         set("m-xgb-mase", m.xgboost.mase.toFixed(4));
-        const mejora = (1 - m.xgboost.mase) * 100;
-        set("m-xgb-gain", mejora > 0 ? `(-${mejora.toFixed(1)}%)` : `(+${(-mejora).toFixed(1)}%)`);
+        // Error reduction in units compared with the baseline
+        const mejora = (1 - m.xgboost.mae_relativo) * 100;
+        set("m-xgb-gain", `(${mejora.toFixed(1)}% menos error que la línea base)`);
     } catch { /* se queda en "–" */ }
 }
 

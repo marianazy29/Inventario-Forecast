@@ -14,7 +14,7 @@ os.makedirs(DATA_DIR, exist_ok=True)
 os.makedirs(ARTIFACTS_DIR, exist_ok=True)
 
 # 4. Archivos del modelo y los datos
-MODEL_PATH = os.path.join(ARTIFACTS_DIR, "modelo_xgboost_licoreria.pkl")
+MODEL_PATH = os.path.join(ARTIFACTS_DIR, "modelo_licoreria.pkl")
 ENCODER_PATH = os.path.join(ARTIFACTS_DIR, "codificador_productos.pkl")
 METRICS_PATH = os.path.join(ARTIFACTS_DIR, "metricas.json")
 DATASET_INTELIGENTE_PATH = os.path.join(DATA_DIR, "dataset_licoreria_inteligente.csv")
