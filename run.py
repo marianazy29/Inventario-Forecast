@@ -28,18 +28,24 @@ if __name__ == "__main__":
         print("⚠️  [ALERTA] No se detectaron los modelos entrenados o los datos limpios.")
         print("🚀 [AUTOMATIZACIÓN] Iniciando reconstrucción completa del Pipeline de ML...\n")
         
-        # Paso 1: Crear dataset inteligente de calendario y feriados de Bolivia
+        # Paso 0: Validar el catálogo (data/Catalogo.xlsx)
+        ejecutar_script("crear_catalogo.py")
+
+        # Paso 1: Generar las ventas sintéticas a partir del catálogo (con semilla fija)
+        ejecutar_script("generar_datos.py")
+
+        # Paso 2: Agregar variables de calendario y feriados de Bolivia
         ejecutar_script("procesamiento.py")
-        
-        # Paso 2: Calcular las métricas iniciales de la Línea Base Tradicional
-        ejecutar_script("linea_base.py")
-        
-        # Paso 3: Separar los datos cronológicamente (2022-2025 Train | 2026 Test)
+
+        # Paso 3: Separar los datos cronológicamente (2023-2025 Train | 2026 Test)
         ejecutar_script("separacion_temporal.py")
-        
-        # Paso 4: Evaluar Ridge vs XGBoost, reentrenar el modelo final y exportar los .pkl y metricas.json
+
+        # Paso 4: Comparar modelos en validación (2025) para elegir el mejor
+        ejecutar_script("seleccion_modelo.py")
+
+        # Paso 5: Examen final en 2026, reentrenar el modelo elegido y exportar .pkl y metricas.json
         ejecutar_script("entrenamiento.py")
-        
+
         print("\n🎉 [PIPELINE] ¡Pipeline End-to-End completado con éxito!")
         print("📦 Todos los datos y archivos .pkl han sido regenerados de forma correcta.\n")
     else:

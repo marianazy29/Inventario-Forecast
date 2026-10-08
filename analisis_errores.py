@@ -23,7 +23,7 @@ df = df.dropna(subset=["Venta_Semana_Anterior"]).copy()
 df["Producto_Codificado"] = LabelEncoder().fit_transform(df["ProductoId"])
 
 columnas_modelo = ["Producto_Codificado", "Mes", "Día_Semana", "Es_Fin_De_Semana",
-                   "Es_Feriado", "Es_Evento_Festivo", "Venta_Semana_Anterior"]
+                   "Es_Feriado", "Es_Carnaval", "Es_Evento_Festivo", "Venta_Semana_Anterior"]
 
 train = df[df["Fecha"] < FECHA_CORTE]
 test = df[df["Fecha"] >= FECHA_CORTE].copy()
@@ -46,8 +46,8 @@ grupo_volumen = pd.qcut(venta_promedio, 3, labels=["1. Venta baja", "2. Venta me
 test["Grupo_Volumen"] = test["ProductoId"].map(grupo_volumen)
 
 test["Tipo_Dia"] = np.select(
-    [test["Es_Evento_Festivo"] == 1, test["Es_Feriado"] == 1],
-    ["Evento festivo", "Feriado"],
+    [test["Es_Carnaval"] == 1, test["Es_Evento_Festivo"] == 1, test["Es_Feriado"] == 1],
+    ["Carnaval", "Evento festivo", "Feriado"],
     default="Día normal",
 )
 test["Dia"] = test["Día_Semana"].map(dict(enumerate(NOMBRES_DIAS)))

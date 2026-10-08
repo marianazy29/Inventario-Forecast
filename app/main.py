@@ -3,7 +3,6 @@ import os
 import re
 import unicodedata
 
-import holidays
 import joblib
 import numpy as np
 import pandas as pd
@@ -11,6 +10,7 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
+from app.calendario import variables_calendario
 from app.schemas import ConsultaPrediccion, ConsultaRecomendacion
 from app.settings import (
     DATASET_INTELIGENTE_PATH,
@@ -49,9 +49,8 @@ encoder = joblib.load(ENCODER_PATH)
 
 COLUMNAS = [
     "Producto_Codificado", "Mes", "Día_Semana", "Es_Fin_De_Semana",
-    "Es_Feriado", "Es_Evento_Festivo", "Venta_Semana_Anterior",
+    "Es_Feriado", "Es_Carnaval", "Es_Evento_Festivo", "Venta_Semana_Anterior",
 ]
-FESTIVIDADES_COMERCIALES = {(5, 27), (6, 23), (9, 21), (11, 1), (12, 24), (12, 31)}
 
 _df = pd.read_csv(
     DATASET_INTELIGENTE_PATH,
@@ -81,7 +80,6 @@ _VENTAS = (
     .fillna(0.0)
 )
 _ULTIMA_FECHA = _VENTAS.index[-1]
-_FERIADOS = holidays.Bolivia(years=range(2022, 2037))
 
 
 def _norm(texto) -> str:
@@ -153,14 +151,9 @@ def _parsear_fecha(texto: str) -> pd.Timestamp:
 
 
 def _calendario(fecha: pd.Timestamp) -> dict:
-    dia = fecha.dayofweek
-    return {
-        "Mes": fecha.month,
-        "Día_Semana": dia,
-        "Es_Fin_De_Semana": 1 if dia in (4, 5, 6) else 0,
-        "Es_Feriado": 1 if fecha.date() in _FERIADOS else 0,
-        "Es_Evento_Festivo": 1 if (fecha.month, fecha.day) in FESTIVIDADES_COMERCIALES else 0,
-    }
+    """Calendar features for one date (same rules as training, see app/calendario.py)."""
+    fila = variables_calendario(pd.Series([fecha])).iloc[0]
+    return {columna: int(fila[columna]) for columna in COLUMNAS if columna in fila.index}
 
 
 def _predecir(fecha: pd.Timestamp, codigos: np.ndarray, lags: np.ndarray) -> np.ndarray:

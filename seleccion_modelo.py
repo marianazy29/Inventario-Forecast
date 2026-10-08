@@ -48,7 +48,7 @@ def calcular_mase(datos_evaluacion, prediccion, escala):
 
 escala = calcular_escala_mase(entrenamiento)  # se calcula UNA vez, solo con entrenamiento
 
-sin_lag = ["Producto_Codificado", "Mes", "Día_Semana", "Es_Fin_De_Semana", "Es_Feriado", "Es_Evento_Festivo"]
+sin_lag = ["Producto_Codificado", "Mes", "Día_Semana", "Es_Fin_De_Semana", "Es_Feriado", "Es_Carnaval", "Es_Evento_Festivo"]
 con_lag = sin_lag + ["Venta_Semana_Anterior"]
 
 

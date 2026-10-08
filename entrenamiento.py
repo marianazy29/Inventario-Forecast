@@ -28,7 +28,7 @@ df = df.dropna(subset=["Venta_Semana_Anterior"]).copy()
 le = LabelEncoder()
 df["Producto_Codificado"] = le.fit_transform(df["ProductoId"])
 
-columnas_calendario = ["Producto_Codificado", "Mes", "Día_Semana", "Es_Fin_De_Semana", "Es_Feriado", "Es_Evento_Festivo"]
+columnas_calendario = ["Producto_Codificado", "Mes", "Día_Semana", "Es_Fin_De_Semana", "Es_Feriado", "Es_Carnaval", "Es_Evento_Festivo"]
 columnas_modelo = columnas_calendario + ["Venta_Semana_Anterior"]
 
 train = df[df["Fecha"] < FECHA_CORTE]  # 2023-2025 (entrenamiento + validación)
