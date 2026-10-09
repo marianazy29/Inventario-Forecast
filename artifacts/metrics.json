@@ -1,0 +1,29 @@
+{
+  "test_period": "2026-01-01 a 2026-09-30",
+  "test_rows": 82446,
+  "chosen_model": "xgboost",
+  "primary_metric": "mase",
+  "baseline": {
+    "mae": 8.91,
+    "relative_mae": 1.0,
+    "mase": 1.0584
+  },
+  "ridge": {
+    "mae": 6.7,
+    "relative_mae": 0.7514,
+    "mase": 0.8152
+  },
+  "xgboost": {
+    "mae": 6.36,
+    "relative_mae": 0.7138,
+    "mase": 0.7592
+  },
+  "interval_target": 0.8,
+  "interval_coverage": 0.8483,
+  "weekly": {
+    "weeks": 11476,
+    "xgboost_error_pct": 15.9,
+    "baseline_error_pct": 21.1,
+    "interval_coverage": 0.814
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "daily": [
+    {
+      "from": 0.0,
+      "to": 5.0,
+      "low_ratio": 0.0,
+      "high_ratio": 2.0401
+    },
+    {
+      "from": 5.0,
+      "to": 15.0,
+      "low_ratio": 0.388,
+      "high_ratio": 1.746
+    },
+    {
+      "from": 15.0,
+      "to": 40.0,
+      "low_ratio": 0.4666,
+      "high_ratio": 1.6786
+    },
+    {
+      "from": 40.0,
+      "to": Infinity,
+      "low_ratio": 0.4897,
+      "high_ratio": 1.6638
+    }
+  ],
+  "weekly": [
+    {
+      "from": 0.0,
+      "to": 35.0,
+      "low_ratio": 0.6446,
+      "high_ratio": 1.4163
+    },
+    {
+      "from": 35.0,
+      "to": 105.0,
+      "low_ratio": 0.7339,
+      "high_ratio": 1.321
+    },
+    {
+      "from": 105.0,
+      "to": 280.0,
+      "low_ratio": 0.7799,
+      "high_ratio": 1.2815
+    },
+    {
+      "from": 280.0,
+      "to": Infinity,
+      "low_ratio": 0.8125,
+      "high_ratio": 1.327
+    }
+  ]
+}

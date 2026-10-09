@@ -1,10 +1,10 @@
-/* PALETA PASTEL ELEGANTE */
+/* Pastel color palette */
 :root {
     --bg-app: #f7f9fc;
     --bg-card: #ffffff;
     --text-dark: #2c3a4e;
     --text-light: #61738c;
-    --nav-active: #5c7cfa; /* Lavanda Pastel Intenso */
+    --nav-active: #5c7cfa; /* Strong pastel lavender */
     --nav-hover: #edf2ff;
     --pastel-green: #e3faf2;
     --pastel-green-text: #0ca678;
@@ -76,7 +76,7 @@ body {
     font-weight: 600;
 }
 
-/* Sistema de Pestañas Navegación */
+/* Tab navigation */
 .app-nav {
     display: flex;
     gap: 0.5rem;
@@ -108,7 +108,7 @@ body {
     font-weight: 600;
 }
 
-/* Estructura de Contenido */
+/* Content layout */
 .content-section {
     display: none;
     animation: fadeIn 0.3s ease-in-out;
@@ -134,7 +134,7 @@ body {
     color: var(--text-light);
 }
 
-/* Formularios y Inputs */
+/* Forms and inputs */
 .panel-layout {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -181,7 +181,7 @@ input:focus {
     border-color: #bac8ff;
 }
 
-/* Botones Pasteles */
+/* Buttons */
 button:active { transform: scale(0.98); }
 
 .btn-pastel-primary {
@@ -227,19 +227,7 @@ button:active { transform: scale(0.98); }
 
 .btn-pastel-secondary:hover { background-color: #c3fae8; }
 
-.btn-pastel-dark {
-    background-color: #e9ecef;
-    color: #495057;
-    padding: 0.75rem 1.5rem;
-    font-weight: 600;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-}
-
-.btn-pastel-dark:hover { background-color: #dee2e6; }
-
-/* Cajas de Resultados */
+/* Result boxes */
 .result-card-pastel {
     background-color: #edf2ff;
     border: 1px solid #d0bfff;
@@ -249,7 +237,7 @@ button:active { transform: scale(0.98); }
     line-height: 1.6;
 }
 
-/* Cuadrículas de Recomendaciones */
+/* Recommendation grid */
 .pastel-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -275,7 +263,7 @@ button:active { transform: scale(0.98); }
     box-shadow: 0 4px 12px rgba(0,0,0,0.02);
 }
 
-.rec-card-pastel.top-1 { border-top-color: #ffec99; background: #fffbeb; } /* Oro Pastel */
+.rec-card-pastel.top-1 { border-top-color: #ffec99; background: #fffbeb; } /* Pastel gold */
 .rec-card-pastel.top-2 { border-top-color: #e1f5fe; }
 .rec-card-pastel.top-3 { border-top-color: #ffe0b2; }
 
@@ -308,49 +296,12 @@ button:active { transform: scale(0.98); }
 .rec-metrics p { display: flex; justify-content: space-between; color: var(--text-light); }
 .rec-metrics strong { color: var(--text-dark); }
 
-/* Dashboard Evaluación */
+/* Evaluation dashboard */
 .evaluation-panel {
     display: flex;
     flex-direction: column;
     gap: 2.5rem;
 }
-
-.eval-controls {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    background: #fafbfc;
-    padding: 1.2rem 2rem;
-    border-radius: 12px;
-    border: 1px solid var(--border-soft);
-}
-
-.slider-container {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    flex: 1;
-}
-
-.slider {
-    flex: 1;
-    -webkit-appearance: none;
-    height: 6px;
-    background: #dee2e6;
-    border-radius: 5px;
-    outline: none;
-}
-
-.slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: var(--nav-active);
-    cursor: pointer;
-}
-
-.slider-value { font-size: 0.95rem; color: var(--text-dark); }
 
 .dashboard-pastels {
     display: grid;
@@ -403,28 +354,7 @@ button:active { transform: scale(0.98); }
 .p-foot-winner { margin-top: 0.4rem; font-size: 0.88rem; color: #0ca678; font-weight: 600; }
 .green-text { color: #0ca678; }
 
-/* Zona de Carga */
-.upload-area-pastel {
-    background: #fafbfc;
-    padding: 2.5rem;
-    border-radius: 16px;
-    border: 1px solid var(--border-soft);
-}
-
-.upload-dropzone {
-    border: 2px dashed #ced4da;
-    background: #ffffff;
-    border-radius: 12px;
-    padding: 4rem 2rem;
-    text-align: center;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-.upload-dropzone:hover { background-color: #f8f9fa; }
-.upload-icon { font-size: 2.5rem; display: block; margin-bottom: 1rem; }
-.upload-types { font-size: 0.8rem; color: var(--text-light); display: block; margin-top: 0.5rem; }
-
+/* Footer and utilities */
 .app-footer-bar {
     margin-top: 3.5rem;
     border-top: 1px solid var(--border-soft);
@@ -441,19 +371,26 @@ button:active { transform: scale(0.98); }
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* ===== Autocompletado de productos por nombre ===== */
+/* ===== Product autocomplete ===== */
 .autocomplete { position: relative; }
-.sugerencias {
+.suggestions {
     position: absolute; left: 0; right: 0; top: 100%;
     margin: 4px 0 0; padding: 4px; list-style: none;
     background: var(--bg-card); border: 1px solid var(--border-soft);
     border-radius: 12px; box-shadow: var(--shadow-soft);
     max-height: 280px; overflow-y: auto; z-index: 20;
 }
-.sugerencias li { padding: 0.55rem 0.7rem; border-radius: 8px; cursor: pointer; color: var(--text-dark); }
-.sugerencias li small { display: block; color: var(--text-light); font-size: 0.75rem; }
-.sugerencias li:hover, .sugerencias li.activo { background: var(--nav-hover); }
-.sugerencias li.vacio { color: var(--text-light); cursor: default; }
+.suggestions li { padding: 0.55rem 0.7rem; border-radius: 8px; cursor: pointer; color: var(--text-dark); }
+.suggestions li small { display: block; color: var(--text-light); font-size: 0.75rem; }
+.suggestions li:hover, .suggestions li.active { background: var(--nav-hover); }
+.suggestions li.empty { color: var(--text-light); cursor: default; }
 .hint { display: block; margin-top: 0.35rem; color: var(--text-light); font-size: 0.78rem; }
-.hint.ok { color: var(--pastel-green-text); }
+.hint.selected { color: var(--pastel-green-text); }
 .api-status.offline { color: var(--pastel-rose-text); }
+
+/* ===== Weekly forecast table ===== */
+.week-table { width: 100%; border-collapse: collapse; margin: 0.8rem 0; font-size: 0.92rem; color: var(--text-dark); }
+.week-table th, .week-table td { padding: 0.35rem 0.5rem; border-bottom: 1px solid #d0bfff; text-align: left; }
+.week-table th { font-size: 0.8rem; color: var(--text-light); font-weight: 600; }
+.week-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+.week-table tfoot td { font-weight: 700; border-bottom: none; border-top: 2px solid #b197fc; }

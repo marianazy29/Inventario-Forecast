@@ -3,96 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Licorería · Sistema de Inventario Inteligente</title>
+    <title>Licorería UNAS FRÍAS? · Pronóstico de ventas</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="app-container">
-        <!-- Encabezado Principal Elegante -->
+        <!-- Header -->
         <header class="app-header">
             <div class="brand">
-                <span class="brand-icon">🍾</span>
+                <span class="brand-icon"></span>
                 <div>
                     <h1>Pronóstico de ventas <em>y recomendaciones</em></h1>
-                    <p class="brand-sub">Inventario inteligente para la toma de decisiones estratégicas</p>
+                    <p class="brand-sub">Licorería UNAS FRÍAS? · Apoyo a decisiones de inventario y promociones</p>
                 </div>
             </div>
-            <div class="api-status" id="api-status">● Sistema Activo</div>
+            <div class="api-status" id="api-status">● Conectando...</div>
         </header>
 
-        <!-- Barra de Navegación por Pestañas -->
+        <!-- Tab navigation -->
         <nav class="app-nav">
-            <button class="nav-link active" data-target="sec-pronostico">🔮 Pronóstico</button>
-            <button class="nav-link" data-target="sec-recomendaciones">🎯 Recomendaciones</button>
-            <button class="nav-link" data-target="sec-evaluacion">📊 Evaluación de modelos</button>
-            <button class="nav-link" data-target="sec-datos">📂 Cargar mis datos</button>
+            <button class="nav-link active" data-target="forecast-section">Pronóstico</button>
+            <button class="nav-link" data-target="recommendations-section">Recomendaciones</button>
+            <button class="nav-link" data-target="evaluation-section">Evaluación de modelos</button>
         </nav>
 
-        <!-- CONTENEDOR PRINCIPAL DE SECCIONES -->
         <main class="app-content">
-            
-            <!-- SECCIÓN 1: PRONÓSTICO -->
-            <section id="sec-pronostico" class="content-section active">
+
+            <!-- SECTION 1: FORECAST -->
+            <section id="forecast-section" class="content-section active">
                 <div class="section-header">
-                    <h2>¿Cuánto se venderá?</h2>
-                    <p>Elige un producto y una fecha. Se calculará el volumen de stock mínimo requerido por el modelo predictivo.</p>
+                    <h2>¿Cuánto se venderá esta semana?</h2>
+                    <p>Elige un producto y una fecha de inicio. El modelo estima cuántas unidades se venderán cada día durante los 7 días siguientes y en total.</p>
                 </div>
-                
+
                 <div class="panel-layout">
                     <form id="prediction-form" class="clean-form">
                         <div class="form-group autocomplete">
-                            <label for="producto-buscar">Producto (busca por nombre)</label>
-                            <input type="text" id="producto-buscar" required autocomplete="off" placeholder="Ej: Pepsi lata, Corona, Jack Daniel's">
-                            <input type="hidden" id="producto-id">
-                            <ul id="producto-sugerencias" class="sugerencias hidden" role="listbox"></ul>
-                            <small id="producto-seleccionado" class="hint">Escribe al menos 2 letras y elige de la lista.</small>
+                            <label for="product-search">Producto (busca por nombre)</label>
+                            <input type="text" id="product-search" required autocomplete="off" placeholder="Ej: Paceña, Corona, Jack Daniel's">
+                            <input type="hidden" id="product-id">
+                            <ul id="product-suggestions" class="suggestions hidden" role="listbox"></ul>
+                            <small id="product-selected" class="hint">Escribe al menos 2 letras y elige de la lista.</small>
                         </div>
                         <div class="form-group">
-                            <label for="fecha-pred">Fecha comercial a consultar</label>
-                            <input type="date" id="fecha-pred" required value="2026-11-01">
+                            <label for="prediction-date">Desde la fecha</label>
+                            <input type="date" id="prediction-date" required value="2026-10-01">
                         </div>
-                        <div class="form-group">
-                            <label for="venta-anterior">Venta de hace 7 días (opcional)</label>
-                            <input type="number" id="venta-anterior" min="0" placeholder="Vacío = se calcula automáticamente">
-                        </div>
-                        <button type="submit" class="btn-pastel-primary">Calcular pronóstico</button>
+                        <button type="submit" class="btn-pastel-primary">Pronosticar 7 días</button>
                     </form>
                     <div id="prediction-result" class="result-card-pastel hidden"></div>
                 </div>
             </section>
 
-            <!-- SECCIÓN 2: RECOMENDACIONES -->
-            <section id="sec-recomendaciones" class="content-section">
+            <!-- SECTION 2: RECOMMENDATIONS -->
+            <section id="recommendations-section" class="content-section">
                 <div class="section-header">
                     <h2>¿Qué conviene promover?</h2>
-                    <p>Top de productos según demanda esperada y ganancia estimada para el día elegido, analizando eventos festivos.</p>
+                    <p>Productos con mayor ganancia estimada para el día elegido, según la demanda que predice el modelo.</p>
                 </div>
-                
+
                 <div class="inline-control-box">
                     <div class="form-group-inline">
-                        <label for="fecha-rec">Elegir Fecha:</label>
-                        <input type="date" id="fecha-rec" required value="2026-06-23">
+                        <label for="recommendation-date">Elegir fecha:</label>
+                        <input type="date" id="recommendation-date" required value="2026-12-24">
                     </div>
                     <button id="btn-recommend" class="btn-pastel-secondary">Generar recomendaciones</button>
                 </div>
-                
+
                 <div id="recommendations-container" class="pastel-grid">
                     <div class="empty-state-pastel">
-                        <p>Selecciona una fecha y presiona el botón para procesar el algoritmo prescriptivo.</p>
+                        <p>Selecciona una fecha y presiona el botón para ver las recomendaciones.</p>
                     </div>
                 </div>
+                <p class="hint" style="margin-top:1rem;">
+                    <strong>Limitación:</strong> los márgenes de ganancia por categoría son valores de ejemplo; para usarlo en la tienda hay que reemplazarlos por los márgenes reales.
+                </p>
             </section>
 
-            <!-- SECCIÓN 3: EVALUACIÓN DE MODELOS (Métricas de la Maestría) -->
-            <section id="sec-evaluacion" class="content-section">
+            <!-- SECTION 3: MODEL EVALUATION -->
+            <section id="evaluation-section" class="content-section">
                 <div class="section-header">
                     <h2>¿Qué tan bueno es cada modelo?</h2>
-                    <p>Comparativa del rendimiento matemático evaluado sobre los datos reales del histórico del servidor.</p>
+                    <p>Resultados de la prueba final, con datos que los modelos nunca vieron durante el entrenamiento.</p>
                 </div>
-                
+
                 <div class="evaluation-panel">
-                    <p id="eval-periodo" class="hint" style="margin-bottom:1rem;"></p>
+                    <p id="eval-period" class="hint" style="margin-bottom:1rem;"></p>
                     <div class="dashboard-pastels">
                         <div class="p-card item-baseline">
                             <span class="badge-p bg-p-gray">Referencia</span>
@@ -104,15 +101,15 @@
                         <div class="p-card item-ridge">
                             <span class="badge-p bg-p-blue">Alternativa</span>
                             <h3>Regresión Regularizada (Ridge)</h3>
-                            <p class="p-desc">Modelo lineal con producto, calendario y venta de la semana anterior</p>
+                            <p class="p-desc">Modelo lineal con producto, calendario y ventas recientes</p>
                             <div class="p-stat">MASE: <strong id="m-ridge-mase">–</strong></div>
                             <div class="p-foot">MAE: <span id="m-ridge-mae">–</span> u.</div>
                         </div>
                         <div class="p-card item-xgb active-winner">
-                            <div class="ribbon-winner">🏆 Modelo elegido</div>
+                            <div class="ribbon-winner">Modelo elegido</div>
                             <span class="badge-p bg-p-green">En uso</span>
                             <h3>XGBoost Regressor</h3>
-                            <p class="p-desc">Árboles de decisión con producto, calendario y venta de la semana anterior</p>
+                            <p class="p-desc">Árboles de decisión con producto, calendario y ventas recientes</p>
                             <div class="p-stat">MASE: <strong class="green-text" id="m-xgb-mase">–</strong></div>
                             <div class="p-foot-winner">MAE: <span id="m-xgb-mae">–</span> u. <span id="m-xgb-gain"></span></div>
                         </div>
@@ -121,39 +118,21 @@
                         <strong>MASE (métrica principal):</strong> compara el error de cada producto con el de la línea base y promedia; todos los productos pesan igual. Menor que 1 significa mejor que la regla simple.
                         <strong>MAE:</strong> error promedio en unidades por producto y día.
                         El modelo se eligió por su MASE en validación (año 2025); estos resultados son de la prueba final.
-                        <strong>Limitación:</strong> XGBoost es algo menos preciso que Ridge en los productos de mayor venta.
+                    </p>
+                    <p id="weekly-results" class="hint"></p>
+                    <p id="interval-coverage" class="hint"></p>
+                    <p class="hint">
+                        <strong>Límites de la solución:</strong> los datos son sintéticos (generados con reglas definidas por la autora), por lo que el rendimiento con ventas reales debe comprobarse.
+                        Las ventas diarias de un producto tienen mucha variación al azar: por eso el pronóstico se presenta por semana, con un rango para el total, y los valores de cada día son solo orientativos.
+                        Se equivoca más en días especiales como el Carnaval, de los que tiene pocos ejemplos.
+                        Para fechas futuras, la precisión baja a medida que la fecha se aleja del último dato real.
                     </p>
                 </div>
             </section>
-
-            <!-- SECCIÓN 4: CARGAR DATOS -->
-            <section id="sec-datos" class="content-section">
-                <div class="section-header">
-                    <h2>Analizar otros datos</h2>
-                    <p>Opcional: sube ventas nuevas o de otra sucursal para evaluar la precisión de los modelos con ellas.</p>
-                </div>
-                
-                <div class="upload-area-pastel">
-                    <div class="upload-dropzone" id="dropzone">
-                        <span class="upload-icon">📥</span>
-                        <p><strong>Arrastra tu archivo aquí</strong> o haz clic para elegir</p>
-                        <span class="upload-types">Soporta archivos .csv o .xlsx</span>
-                    </div>
-                    
-                    <div class="eval-controls" style="margin-top: 2rem; justify-content: center;">
-                        <label>Datos para evaluación:</label>
-                        <div class="slider-container">
-                            <input type="range" min="10" max="40" value="20" class="slider">
-                            <span class="slider-value"><strong>20</strong>%</span>
-                        </div>
-                        <button class="btn-pastel-dark" disabled title="Función pendiente de implementar">Ejecutar análisis (próximamente)</button>
-                    </div>
-                </div>
-            </section>
         </main>
-        
+
         <footer class="app-footer-bar">
-            <p>© 2026 Licorería Inteligente · Solución Analítica de Gestión de Inventarios</p>
+            <p>© 2026 Licorería UNAS FRÍAS · Pronóstico de ventas con aprendizaje automático</p>
         </footer>
     </div>
     <script src="app.js"></script>
