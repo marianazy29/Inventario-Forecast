@@ -1,0 +1,37 @@
+# =====================================================================
+# Files that must NOT be uploaded to the repository
+# =====================================================================
+
+# Virtual environment (each person creates their own: python -m venv env)
+env/
+venv/
+.venv/
+
+# Python cache files (created automatically when the code runs)
+__pycache__/
+*.py[cod]
+
+# Test cache (created by pytest)
+.pytest_cache/
+
+# Generated data: recreated with "python run.py --reconstruir"
+# Only data/Catalogo.xlsx (the edited input file) is kept in the repository
+data/*.csv
+
+# Trained model and metrics: recreated with "python run.py"
+artifacts/
+
+# Credentials and local settings (never upload passwords or keys)
+.env
+*.key
+*.pem
+
+# Editor and operating system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary Excel file created while Catalogo.xlsx is open
+~$*.xlsx
